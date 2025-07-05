@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { getFixtures, addFixture, updateFixture, deleteFixture } from '../../api/admin';
 
-const AdminEquipment = () => {
+const Equipment = () => {
     const [fixtures, setFixtures] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -24,7 +24,7 @@ const AdminEquipment = () => {
         setError(null);
         try {
             const response = await getFixtures(page, size);
-            setFixtures(response.data.data || []);
+            setFixtures(response.data.data);
             setTotalPage(response.data.totalPage);
         } catch (err) {
             setError('비품 목록을 불러오는데 실패했습니다.');
@@ -181,4 +181,4 @@ const AdminEquipment = () => {
     );
 };
 
-export default AdminEquipment;
+export default Equipment;
