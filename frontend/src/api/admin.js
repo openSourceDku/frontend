@@ -160,29 +160,40 @@ export const getClasses = () => {
 };
 
 // 클래스 등록
-export const addClass = (className, teacherName, daysOfWeek, students, todos) => {
+export const addClass = (className, teacherName, daysOfWeek, students, todos, classroom) => {
     if (USE_MOCK_DATA) {
         return new Promise((resolve) => {
             setTimeout(() => {
-                console.log('Mock: Adding class', { className, teacherName, daysOfWeek, students, todos });
+                console.log('Mock: Adding class', { className, teacherName, daysOfWeek, students, todos, classroom });
                 resolve({ data: { message: 'Class added successfully (mock)' } });
             }, 500);
         });
     }
-    return apiClient.post('/classes', { className, teacherName, daysOfWeek, students, todos });
+    return apiClient.post('/classes', { className, teacherName, daysOfWeek, students, todos, classroom });
 };
 
 // 클래스 수정
-export const updateClass = (classId, className, teacherName, daysOfWeek, students, todos) => {
+export const updateClass = (classId, className, teacherId, daysOfWeek, students, classroom) => {
     if (USE_MOCK_DATA) {
         return new Promise((resolve) => {
             setTimeout(() => {
-                console.log('Mock: Updating class', { classId, className, teacherName, daysOfWeek, students, todos });
+                console.log('Mock: Updating class', { classId, className, teacherId, daysOfWeek, students, classroom });
                 resolve({ data: { message: 'Class updated successfully (mock)' } });
             }, 500);
         });
     }
-    return apiClient.patch(`/classes/${classId}`, { className, teacherName, daysOfWeek, students, todos });
+    return apiClient.patch(`/class-list/${classId}`, { classname: className, techerid: teacherId, day: daysOfWeek.map(day => {
+        const dayMap = {
+            'MONDAY': 1,
+            'TUESDAY': 2,
+            'WEDNESDAY': 3,
+            'THURSDAY': 4,
+            'FRIDAY': 5,
+            'SATURDAY': 6,
+            'SUNDAY': 7
+        };
+        return dayMap[day];
+    }), studentids: students.map(s => s.studentId), classroom });
 };
 
 // 클래스 삭제

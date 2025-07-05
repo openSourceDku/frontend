@@ -40,9 +40,27 @@ const AdminClasses = () => {
     const handleSaveClass = async (classData) => {
         try {
             if (currentClass) {
-                await updateClass(currentClass.classId, classData.className, classData.teacherId, classData.daysOfWeek, classData.students, classData.todos);
+                // For update, use the PATCH API structure
+                await updateClass(
+                    currentClass.classId,
+                    classData.className,
+                    classData.teacherId,
+                    classData.daysOfWeek,
+                    classData.students
+                );
             } else {
-                await addClass(classData.className, classData.teacherId, classData.daysOfWeek, classData.students, classData.todos);
+                // For add, use the POST API structure
+                // Note: The POST API expects 'teacherName', but we are getting 'teacherId' from the modal.
+                // This might require a lookup for teacherName if the backend strictly requires it.
+                // For now, I'll pass teacherId as teacherName, assuming backend can handle it or it's a placeholder.
+                const selectedTeacher = allTeachers.find(t => t.teacherId === classData.teacherId);
+                await addClass(
+                    classData.className,
+                    selectedTeacher ? selectedTeacher.teacherName : '', // Pass teacherName for add
+                    classData.daysOfWeek,
+                    classData.students,
+                    classData.todos
+                );
             }
             setShowModal(false);
             fetchClasses();
