@@ -99,3 +99,153 @@ export const getFixtures = (page = 1, size = 10) => {
     }
     return apiClient.get('/fixtures', { params: { page, size } });
 };
+
+// 클래스 리스트 조회
+export const getClasses = () => {
+    if (USE_MOCK_DATA) {
+        const mockClasses = [
+            {
+                classId: 101,
+                className: "수학 A반",
+                teacher: {
+                    teacherId: 11,
+                    teacherName: "박영수",
+                    classTime: "월 수 금",
+                    classroom: "101호"
+                }
+            },
+            {
+                classId: 102,
+                className: "과학 B반",
+                teacher: {
+                    teacherId: 12,
+                    teacherName: "이민지",
+                    classTime: "월 금",
+                    classroom: "103호"
+                }
+            },
+            {
+                classId: 103,
+                className: "영어 C반",
+                teacher: {
+                    teacherId: 13,
+                    teacherName: "김철수",
+                    classTime: "화 목",
+                    classroom: "102호"
+                }
+            },
+            {
+                classId: 104,
+                className: "국어 D반",
+                teacher: {
+                    teacherId: 14,
+                    teacherName: "최영희",
+                    classTime: "수 금",
+                    classroom: "104호"
+                }
+            },
+        ];
+
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                resolve({
+                    data: {
+                        classes: mockClasses,
+                    },
+                });
+            }, 500); // Simulate network delay
+        });
+    }
+    return apiClient.get('/classes');
+};
+
+// 클래스 등록
+export const addClass = (className, teacherName, daysOfWeek, students, todos) => {
+    if (USE_MOCK_DATA) {
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                console.log('Mock: Adding class', { className, teacherName, daysOfWeek, students, todos });
+                resolve({ data: { message: 'Class added successfully (mock)' } });
+            }, 500);
+        });
+    }
+    return apiClient.post('/classes', { className, teacherName, daysOfWeek, students, todos });
+};
+
+// 클래스 수정
+export const updateClass = (classId, className, teacherName, daysOfWeek, students, todos) => {
+    if (USE_MOCK_DATA) {
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                console.log('Mock: Updating class', { classId, className, teacherName, daysOfWeek, students, todos });
+                resolve({ data: { message: 'Class updated successfully (mock)' } });
+            }, 500);
+        });
+    }
+    return apiClient.patch(`/classes/${classId}`, { className, teacherName, daysOfWeek, students, todos });
+};
+
+// 클래스 삭제
+export const deleteClass = (classId) => {
+    if (USE_MOCK_DATA) {
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                console.log('Mock: Deleting class', { classId });
+                resolve({ data: { message: 'Class deleted successfully (mock)' } });
+            }, 500);
+        });
+    }
+    return apiClient.delete(`/classes/${classId}`);
+};
+
+// 학생 리스트 조회
+export const getStudents = () => {
+    if (USE_MOCK_DATA) {
+        const mockStudents = [
+            { studentId: 301, studentName: "박철수" },
+            { studentId: 302, studentName: "김영희" },
+            { studentId: 303, studentName: "이찬원" },
+            { studentId: 304, studentName: "장민호" },
+            { studentId: 305, studentName: "최수정" },
+            { studentId: 306, studentName: "정동원" },
+            { studentId: 307, studentName: "임영웅" },
+            { studentId: 308, studentName: "영탁" },
+        ];
+
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                resolve({
+                    data: {
+                        students: mockStudents,
+                    },
+                });
+            }, 500); // Simulate network delay
+        });
+    }
+    return apiClient.get('/students');
+};
+
+// 교사 리스트 조회
+export const getTeachers = () => {
+    if (USE_MOCK_DATA) {
+        const mockTeachers = [
+            { teacherId: 11, teacherName: "박영수" },
+            { teacherId: 12, teacherName: "이민지" },
+            { teacherId: 13, teacherName: "김철수" },
+            { teacherId: 14, teacherName: "최영희" },
+            { teacherId: 15, teacherName: "강동원" },
+            { teacherId: 16, teacherName: "송혜교" },
+        ];
+
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                resolve({
+                    data: {
+                        teachers: mockTeachers,
+                    },
+                });
+            }, 500); // Simulate network delay
+        });
+    }
+    return apiClient.get('/teachers');
+};
