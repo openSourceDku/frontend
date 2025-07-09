@@ -17,6 +17,7 @@ import AdminEquipment from './pages/admin/Equipment.jsx';
 import { setAuthToken } from './api/admin'; // ✅ 토큰 등록 함수 import
 
 const token = localStorage.getItem('accessToken');
+
 if (token) {
   setAuthToken(token); // ✅ 앱 시작 시 axios에 토큰 설정
 }

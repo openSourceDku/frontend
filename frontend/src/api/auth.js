@@ -5,7 +5,7 @@ const API_URL = '/api/auth';
 
 export const login = async (username, password, role) => {
   try {
-    const response = await axios.post(`${API_URL}/login`, {
+    const response = await axios.post(`${API_URL}/login/`, {
       username,
       password,
       role,

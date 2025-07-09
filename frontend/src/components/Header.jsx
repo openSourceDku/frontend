@@ -13,8 +13,8 @@ const Header = () => {
       console.error('Logout failed:', error.message);
       // Even if API call fails, force logout on client-side
     } finally {
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('access'); // 수정
+      localStorage.removeItem('refresh');
       localStorage.removeItem('user');
       navigate('/');
     }
