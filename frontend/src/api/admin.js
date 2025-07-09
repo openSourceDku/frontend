@@ -161,6 +161,7 @@ export const addTeacher = (teacherData) => {
     return apiClient.post('/teachers/', teacherData);
 };
 
+
 // 교사 수정
 export const updateTeacher = (teacherData) => {
     return apiClient.patch(`/teachers/${teacherData.id}/`, teacherData);
