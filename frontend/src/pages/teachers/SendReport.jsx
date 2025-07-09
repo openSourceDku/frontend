@@ -13,6 +13,7 @@ function SendReport() {
   useEffect(() => {
     getStudentsByClassId(classId).then((data) => {
       setStudents(data.students);
+      console.log('Fetched students:', data.students);
       const initialSelected = {};
       data.students.forEach(student => {
         initialSelected[student.studentId] = false;
@@ -37,10 +38,15 @@ function SendReport() {
   };
 
   const handleStudentSelect = (studentId) => {
-    setSelectedStudents(prev => ({
-      ...prev,
-      [studentId]: !prev[studentId],
-    }));
+    console.log('Toggling studentId:', studentId);
+    setSelectedStudents(prev => {
+      const newState = {
+        ...prev,
+        [studentId]: !prev[studentId],
+      };
+      console.log('New selectedStudents state:', newState);
+      return newState;
+    });
   };
 
   const handleSubmit = async () => {
@@ -59,14 +65,17 @@ function SendReport() {
       recipients: recipients,
     };
 
-    try {
-      const response = await sendReport(reportData);
-      alert(`Report sent successfully! Status: ${response.status}, Common: ${response.sentCommon}, Individual: ${response.sentIndividual}`);
-      console.log('Report send response:', response);
-    } catch (error) {
-      alert('Failed to send report.');
-      console.error('Error sending report:', error);
-    }
+    console.log('Common Report Data:', reportData.common);
+    console.log('Individual Recipients Data:', reportData.recipients);
+
+    // try {
+    //   const response = await sendReport(reportData);
+    //   alert(`Report sent successfully! Status: ${response.status}, Common: ${response.sentCommon}, Individual: ${response.sentIndividual}`);
+    //   console.log('Report send response:', response);
+    // } catch (error) {
+    //   alert('Failed to send report.');
+    //   console.error('Error sending report:', error);
+    // }
   };
 
   return (
@@ -97,7 +106,9 @@ function SendReport() {
         <div style={{ width: '48%', border: '1px solid #ccc', padding: '15px', borderRadius: '8px' }}>
           <h2>개별 전달 사항 작성</h2>
           <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
-            {students.map((student) => (
+            {students.map((student) => {
+              console.log('Rendering student:', student);
+              return (
               <div key={student.studentId} style={{ display: 'flex', alignItems: 'center', marginBottom: '10px', borderBottom: '1px solid #eee', paddingBottom: '5px' }}>
                 <input
                   type="checkbox"
@@ -105,7 +116,7 @@ function SendReport() {
                   onChange={() => handleStudentSelect(student.studentId)}
                   style={{ marginRight: '10px' }}
                 />
-                <span style={{ width: '80px' }}>{student.studentName}</span>
+                <span style={{ width: '80px' }}>{student.name}</span>
                 <input
                   type="text"
                   placeholder="개별 전달사항"
@@ -115,7 +126,8 @@ function SendReport() {
                   style={{ flexGrow: '1', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
                 />
               </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>

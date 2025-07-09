@@ -40,6 +40,27 @@ class ClassViewSet(viewsets.ModelViewSet):
         headers = self.get_success_headers(serializer.data)
         return Response({"message": "Class added successfully"}, status=status.HTTP_201_CREATED, headers=headers)
 
+    def update(self, request, *args, **kwargs):
+        print("--- ClassViewSet.update ---")
+        print("Incoming class update request data:", request.data)
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        print(f"Updating instance: {instance.id}")
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        try:
+            if not serializer.is_valid(raise_exception=True):
+                print("Serializer Errors (detailed - update):")
+                print(serializer.errors)
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            self.perform_update(serializer)
+            print("Class update successful.")
+            return Response(serializer.data)
+        except Exception as e:
+            print(f"Error during class update: {e}")
+            import traceback
+            traceback.print_exc()
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 class StudentViewSet(viewsets.ModelViewSet):
     queryset = Student.objects.all()
     serializer_class = StudentSerializer
@@ -62,12 +83,21 @@ class StudentViewSet(viewsets.ModelViewSet):
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def list(self, request, *args, **kwargs):
+        print("--- StudentViewSet.list ---")
         queryset = self.filter_queryset(self.get_queryset())
-        serializer = self.get_serializer(queryset, many=True)
-        return Response({
-            'total_counts': queryset.count(),
-            'students': serializer.data
-        })
+        print(f"Queryset count: {queryset.count()}")
+        try:
+            serializer = self.get_serializer(queryset, many=True)
+            print("Serialization successful.")
+            return Response({
+                'total_counts': queryset.count(),
+                'students': serializer.data
+            })
+        except Exception as e:
+            print(f"Error during student list serialization: {e}")
+            import traceback
+            traceback.print_exc()
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class TeacherViewSet(viewsets.ModelViewSet):
     queryset = Teacher.objects.all()

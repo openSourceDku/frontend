@@ -36,9 +36,10 @@ const router = createBrowserRouter([
           if (accessToken && user) {
             try {
               const parsedUser = JSON.parse(user);
-              if (parsedUser.position === 'Administrator') {
+              console.log('Parsed user position:', parsedUser.position);
+              if (parsedUser.position === 'Admin') {
                 return redirect('/admin/tasks');
-              } else if (parsedUser.position === 'Instructor') {
+              } else {
                 return redirect('/teacher/classes');
               }
             } catch (e) {

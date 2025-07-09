@@ -8,8 +8,9 @@ function ClassSelection() {
 
   useEffect(() => {
     getTeacherClasses().then(setClasses);
-  }, []);
 
+  }, []);
+  
   const handleClassClick = (classId) => {
     navigate(`/teacher/class/${classId}/tasks`);
   };
@@ -20,11 +21,11 @@ function ClassSelection() {
       <div style={styles.buttonContainer}>
         {classes.map((classItem) => (
           <div
-            key={classItem.id}
+            key={classItem.classId}
             style={styles.button}
-            onClick={() => handleClassClick(classItem.id)}
+            onClick={() => handleClassClick(classItem.classId)}
           >
-            {classItem.name}
+            {classItem.className}
           </div>
         ))}
       </div>

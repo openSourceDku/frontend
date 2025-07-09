@@ -9,6 +9,7 @@ function CheckEquipment() {
       try {
         const response = await getFixtures();
         setFixtures(response.fixtures);
+        console.log('Fetched fixtures:', response.fixtures);
       } catch (error) {
         console.error('Error fetching fixtures:', error);
         setFixtures([]);
@@ -33,7 +34,7 @@ function CheckEquipment() {
             <tr key={index} style={styles.tr}>
               <td style={styles.td}>{fixture.name}</td>
               <td style={styles.td}>{fixture.price.toLocaleString()}원</td>
-              <td style={styles.td}>{fixture.quantity}</td>
+              <td style={styles.td}>{fixture.count}</td>
             </tr>
           ))}
         </tbody>

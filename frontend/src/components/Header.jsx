@@ -5,7 +5,7 @@ import { logout } from '../api/auth';
 const Header = () => {
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem('user'));
-
+  console.log(user)
   const handleLogout = async () => {
     try {
       await logout();
@@ -22,9 +22,9 @@ const Header = () => {
 
   const handleGoHome = () => {
     if (user) {
-      if (user.position === 'Administrator') {
+      if (user.position === 'Admin') {
         navigate('/admin/tasks');
-      } else if (user.position === 'Instructor') {
+      } else if (user.position === 'teacher') {
         navigate('/teacher/classes');
       } else {
         navigate('/'); // Fallback for unknown roles

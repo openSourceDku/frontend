@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { login } from '../api/auth';
+import { getTeacherProfile } from '../api/teacher';
 
 const Login = () => {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -14,11 +15,14 @@ const Login = () => {
       const response = await login(username, password, role);
       localStorage.setItem('accessToken', response.access);
       localStorage.setItem('refreshToken', response.refresh);
-      localStorage.setItem('user', JSON.stringify(response.user));
 
       if (role === 'admin') {
+        localStorage.setItem('user', JSON.stringify(response.user));
         navigate('/admin/tasks');
       } else {
+        const teacherProfile = await getTeacherProfile();
+        console.log('Teacher profile:', teacherProfile);
+        localStorage.setItem('user', JSON.stringify(teacherProfile));
         navigate('/teacher/classes');
       }
     } catch (error) {

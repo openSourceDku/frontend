@@ -1,81 +1,72 @@
+// src/pages/admin/AdminStudents.jsx
 import React, { useState, useEffect } from 'react';
-import { getStudents, addStudent, updateStudent, deleteStudent } from '../../api/admin';
+import {
+  getStudents, addStudent, updateStudent, deleteStudent
+} from '../../api/admin';
 import StudentFormModal from '../../components/admin/StudentFormModal';
 
-function AdminStudents() {
+export default function AdminStudents() {
   const [students, setStudents] = useState([]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [selected, setSelected] = useState(null);
 
-  useEffect(() => {
-    loadStudents();
-  }, []);
-
-  const loadStudents = () => {
-    getStudents().then(response => {
-      setStudents(response.data.students);
-    });
+  /* ─── 로드 ─── */
+  useEffect(load, []);
+  function load() {
+    getStudents().then(r => setStudents(r.data.students));
   }
 
-  const handleSaveStudent = (studentData) => {
-    if (studentData.id) {
-      updateStudent(studentData).then(() => {
-        loadStudents();
-      });
-    } else {
-      addStudent(studentData).then(() => {
-        loadStudents();
-      });
-    }
-  };
+  /* ─── 저장(등록/수정) ─── */
+  function onSave(data) {
+    // studentId 가 있으면 수정, 없으면 신규
+    (data.studentId ? updateStudent(data) : addStudent(data)).then(load);
+  }
 
-  const handleDeleteStudent = (studentId) => {
-    if (window.confirm('Are you sure you want to delete this student?')) {
-      deleteStudent(studentId).then(() => {
-        loadStudents();
-      });
-    }
-  };
+  /* ─── 삭제 ─── */
+  function onDel(id) {
+    if (window.confirm('삭제하시겠습니까?'))
+      deleteStudent(id).then(load);
+  }
 
-  const openModal = (student = null) => {
-    setSelectedStudent(student);
-    setIsModalOpen(true);
-  };
+  /* ─── 모달 ─── */
+  const open = s => { setSelected(s); setShowModal(true); };
 
   return (
-    <div style={{ padding: '20px', maxWidth: '1000px', margin: '0 auto' }}>
+    <div style={{padding:20,maxWidth:1000,margin:'0 auto'}}>
       <h1>학생 관리</h1>
-      <button onClick={() => openModal()} style={buttonStyle}>학생 등록</button>
-      <StudentFormModal 
-        show={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-        onSave={handleSaveStudent} 
-        student={selectedStudent}
+      <button style={btnNew} onClick={()=>open(null)}>학생 등록</button>
+
+      <StudentFormModal
+        show={showModal}
+        onClose={()=>setShowModal(false)}
+        onSave={onSave}
+        student={selected}
       />
-      <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '20px' }}>
+
+      <table style={tbl}>
         <thead>
           <tr>
-            <th style={tableHeaderStyle}>Student ID</th>
-            <th style={tableHeaderStyle}>Class ID</th>
-            <th style={tableHeaderStyle}>Name</th>
-            <th style={tableHeaderStyle}>Birth Date</th>
-            <th style={tableHeaderStyle}>Email</th>
-            <th style={tableHeaderStyle}>Gender</th>
-            <th style={tableHeaderStyle}>Actions</th>
+            <th style={th}>Student&nbsp;ID</th>
+            <th style={th}>Class&nbsp;ID</th>
+            <th style={th}>Name</th>
+            <th style={th}>Birth&nbsp;Date</th>
+            <th style={th}>Email</th>
+            <th style={th}>Gender</th>
+            <th style={th}>Actions</th>
           </tr>
         </thead>
         <tbody>
-          {students.map(student => (
-            <tr key={student.id}>
-              <td style={tableCellStyle}>{student.id}</td>
-              <td style={tableCellStyle}>{student.class_obj ? student.class_obj.id : 'N/A'}</td>
-              <td style={tableCellStyle}>{student.name}</td>
-              <td style={tableCellStyle}>{student.birth_date}</td>
-              <td style={tableCellStyle}>{student.email}</td>
-              <td style={tableCellStyle}>{student.gender}</td>
-              <td style={tableCellStyle}>
-                <button onClick={() => openModal(student)} style={editButtonStyle}>수정</button>
-                <button onClick={() => handleDeleteStudent(student.id)} style={deleteButtonStyle}>삭제</button>
+          {students.map(s=>(
+            <tr key={s.id}>
+              <td style={td}>{s.id}</td>
+              <td style={td}>{s.class_id ?? 'N/A'}</td>
+              <td style={td}>{s.name}</td>
+              <td style={td}>{s.birth_date}</td>
+              <td style={td}>{s.email}</td>
+              <td style={td}>{s.gender}</td>
+              <td style={td}>
+                <button style={btnEdit} onClick={()=>open(s)}>수정</button>
+                <button style={btnDel}  onClick={()=>onDel(s.id)}>삭제</button>
               </td>
             </tr>
           ))}
@@ -85,41 +76,11 @@ function AdminStudents() {
   );
 }
 
-const tableHeaderStyle = {
-  border: '1px solid #ddd',
-  padding: '8px',
-  textAlign: 'left',
-  backgroundColor: '#f2f2f2',
-};
-
-const tableCellStyle = {
-  border: '1px solid #ddd',
-  padding: '8px',
-};
-
-const buttonStyle = {
-  padding: '8px 12px',
-  cursor: 'pointer',
-  marginBottom: '20px'
-};
-
-const editButtonStyle = {
-  padding: '5px 10px',
-  cursor: 'pointer',
-  backgroundColor: '#008CBA',
-  color: 'white',
-  border: 'none',
-  borderRadius: '3px',
-  marginRight: '5px'
-};
-
-const deleteButtonStyle = {
-  padding: '5px 10px',
-  cursor: 'pointer',
-  backgroundColor: '#f44336',
-  color: 'white',
-  border: 'none',
-  borderRadius: '3px',
-};
-
-export default AdminStudents;
+/* ─── 스타일 ─── */
+const tbl={width:'100%',borderCollapse:'collapse',marginTop:20};
+const th ={border:'1px solid #ddd',padding:8,background:'#f2f2f2',textAlign:'left'};
+const td ={border:'1px solid #ddd',padding:8};
+const btnNew={padding:'8px 12px',cursor:'pointer',marginBottom:20};
+const btnEdit={padding:'5px 10px',background:'#008CBA',color:'#fff',
+               border:'none',borderRadius:3,marginRight:5,cursor:'pointer'};
+const btnDel ={...btnEdit,background:'#f44336'};

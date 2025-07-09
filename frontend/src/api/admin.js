@@ -16,7 +16,7 @@ apiClient.interceptors.request.use(
     config => {
         console.log('🚀 Request:', config.method.toUpperCase(), config.url);
         if (config.data) {
-            console.log('   Payload:', config.data);
+            console.log('Payload:', config.data);
         }
         return config;
     },
@@ -138,6 +138,7 @@ export const getStudents = () => {
 
 // 학생 등록
 export const addStudent = (studentData) => {
+
     return apiClient.post('/students/', studentData);
 };
 

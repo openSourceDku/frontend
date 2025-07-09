@@ -3,13 +3,11 @@ from .models import Todo, Report
 from management.models import Class # Import Class model
 
 class TodoSerializer(serializers.ModelSerializer):
-    title = serializers.CharField(source='todoTitle', required=False, allow_blank=True)
-    task = serializers.CharField(source='description', required=False, allow_blank=True)
     class_obj = serializers.PrimaryKeyRelatedField(queryset=Class.objects.all(), write_only=True)
 
     class Meta:
         model = Todo
-        fields = ('id', 'class_obj', 'title', 'task', 'date')
+        fields = ('id', 'class_obj', 'todoTitle', 'description', 'date')
 
     def create(self, validated_data):
         print("TodoSerializer validated_data before create:", validated_data)

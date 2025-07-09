@@ -15,6 +15,7 @@ function CheckTodo() {
         const month = currentDate.getMonth() + 1; // Month is 0-indexed
         const response = await getTodosByClassIdAndMonth(classId, year, month);
         setTodos(response.todos);
+        console.log('Fetched todos:', response.todos);
       } catch (error) {
         console.error('Error fetching todos:', error);
         setTodos([]); // Clear todos on error
