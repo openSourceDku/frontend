@@ -52,7 +52,7 @@ const AdminEquipment = () => {
         if (!currentFixture) return;
         console.log('Updating fixture with ID:', currentFixture.id); // Debugging line
         try {
-            await updateFixture(currentFixture.id, newFixtureName, parseInt(newFixturePrice), parseInt(newFixtureCount));
+            await updateFixture(currentFixture.itemId, newFixtureName, parseInt(newFixturePrice), parseInt(newFixtureCount)); // 수정
             setShowEditModal(false);
             setNewFixtureName('');
             setNewFixturePrice('');
@@ -67,6 +67,7 @@ const AdminEquipment = () => {
 
     const handleDeleteFixture = async (itemId) => {
         if (window.confirm('정말로 이 비품을 삭제하시겠습니까?')) {
+            // window.confirm(itemId)
             try {
                 await deleteFixture(itemId);
                 fetchFixtures();
@@ -107,13 +108,13 @@ const AdminEquipment = () => {
                     <tbody>
                         {fixtures.map((fixture) => (
                             <tr key={fixture.itemId}>
-                                <td style={{ border: '1px solid #ddd', padding: '8px' }}>{fixture.id}</td>
+                                <td style={{ border: '1px solid #ddd', padding: '8px' }}>{fixture.itemId}</td>
                                 <td style={{ border: '1px solid #ddd', padding: '8px' }}>{fixture.name}</td>
                                 <td style={{ border: '1px solid #ddd', padding: '8px' }}>{fixture.price}</td>
                                 <td style={{ border: '1px solid #ddd', padding: '8px' }}>{fixture.count}</td>
                                 <td style={{ border: '1px solid #ddd', padding: '8px' }}>
                                     <button onClick={() => openEditModal(fixture)} style={{ marginRight: '10px', padding: '5px 10px', backgroundColor: '#008CBA', color: 'white', border: 'none', borderRadius: '3px', cursor: 'pointer' }}>수정</button>
-                                    <button onClick={() => handleDeleteFixture(fixture.id)} style={{ padding: '5px 10px', backgroundColor: '#f44336', color: 'white', border: 'none', borderRadius: '3px', cursor: 'pointer' }}>삭제</button>
+                                    <button onClick={() => handleDeleteFixture(fixture.itemId)} style={{ padding: '5px 10px', backgroundColor: '#f44336', color: 'white', border: 'none', borderRadius: '3px', cursor: 'pointer' }}>삭제</button>
                                 </td>
                             </tr>
                         ))}

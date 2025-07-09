@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { login } from '../api/auth';
 
+import { setAuthToken } from '../api/admin'; // 👈 이거 import!
+
 const Login = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [username, setUsername] = useState('');
@@ -15,6 +17,8 @@ const Login = () => {
       localStorage.setItem('accessToken', response.access);
       localStorage.setItem('refreshToken', response.refresh);
       localStorage.setItem('user', JSON.stringify(response.user));
+
+      setAuthToken(response.access); //추가 코드, 수정
 
       if (role === 'admin') {
         navigate('/admin/tasks');
