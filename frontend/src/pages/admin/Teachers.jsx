@@ -17,8 +17,8 @@ function AdminTeachers() {
     });
   }
 
-  const handleSaveTeacher = (teacherData) => {
-    if (teacherData.id) {
+  const handleSaveTeacher = (teacherData) => { // 여기 수정
+    if (teacherData.teacher_id) {
       updateTeacher(teacherData).then(() => {
         loadTeachers();
       });
@@ -28,9 +28,21 @@ function AdminTeachers() {
       });
     }
   };
+  // const handleSaveTeacher = (teacherData) => {
+  //   if (teacherData.id) {
+  //     updateTeacher(teacherData).then(() => {
+  //       loadTeachers();
+  //     });
+  //   } else {
+  //     addTeacher(teacherData).then(() => {
+  //       loadTeachers();
+  //     });
+  //   }
+  // };
 
   const handleDeleteTeacher = (teacherId) => {
     if (window.confirm('Are you sure you want to delete this teacher?')) {
+      window.confirm(teacherId)
       deleteTeacher(teacherId).then(() => {
         loadTeachers();
       });
@@ -75,7 +87,7 @@ function AdminTeachers() {
               <td style={tableCellStyle}>{teacher.sex}</td>
               <td style={tableCellStyle}>
                 <button onClick={() => openModal(teacher)} style={editButtonStyle}>수정</button>
-                <button onClick={() => handleDeleteTeacher(teacher.id)} style={deleteButtonStyle}>삭제</button>
+                <button onClick={() => handleDeleteTeacher(teacher.teacher_id)} style={deleteButtonStyle}>삭제</button>
               </td>
             </tr>
           ))}

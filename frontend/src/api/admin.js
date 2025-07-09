@@ -77,7 +77,7 @@ export const getClasses = () => {
 
 // 클래스 리스트를 강의실별로 그룹화하여 조회
 export const getClassesGroupedByClassroom = () => {
-    return apiClient.get('/classrooms/');
+    return apiClient.get('/classes/classrooms/');
 };
 
 // 클래스 등록
@@ -161,13 +161,22 @@ export const addTeacher = (teacherData) => {
     return apiClient.post('/teachers/', teacherData);
 };
 
-
+//여기 수정
 // 교사 수정
 export const updateTeacher = (teacherData) => {
-    return apiClient.patch(`/teachers/${teacherData.id}/`, teacherData);
+    return apiClient.patch('/teachers/', teacherData); // ✅ URL에서 id 제거!
 };
+// export const updateTeacher = (teacherData) => {
+//     return apiClient.patch(`/teachers/${teacherData.id}/`, teacherData);
+// };
 
 // 교사 삭제
 export const deleteTeacher = (teacherId) => {
-    return apiClient.delete(`/teachers/${teacherId}/`);
+  return apiClient.delete('/teachers/', {
+    headers: { 'Content-Type': 'application/json' }, // ✅ 명시!
+    data: { teacher_id: teacherId }
+  });
 };
+// export const deleteTeacher = (teacherId) => {
+//     return apiClient.delete(`/teachers/${teacherId}/`);
+// };
