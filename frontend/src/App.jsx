@@ -1,10 +1,17 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
+import Header from './components/Header';
 
 function App() {
+  const location = useLocation();
+  const noHeaderPaths = ['/'];
+
   return (
-    <main>
-      <Outlet />
-    </main>
+    <>
+      {!noHeaderPaths.includes(location.pathname) && <Header />}
+      <main>
+        <Outlet />
+      </main>
+    </>
   );
 }
 

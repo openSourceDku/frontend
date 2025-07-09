@@ -1,55 +1,29 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { login } from '../api/auth';
 
 const Login = () => {
   const [isAdmin, setIsAdmin] = useState(false);
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const navigate = useNavigate();
 
-  const handleLogin = () => {
-    // For now, we're simulating a successful login.
-    // In a real application, you would perform authentication here.
+  const handleLogin = async () => {
+    const role = isAdmin ? 'admin' : 'teacher';
+    try {
+      const response = await login(username, password, role);
+      localStorage.setItem('accessToken', response.access);
+      localStorage.setItem('refreshToken', response.refresh);
+      localStorage.setItem('user', JSON.stringify(response.user));
 
-    // Uncomment the following lines to add actual authentication logic:
-    /*
-    const username = ""; // Get username from input
-    const password = ""; // Get password from input
-
-    if (isAdmin) {
-      // Call admin login API
-      // try {
-      //   const response = await adminLogin(username, password);
-      //   if (response.success) {
-      //     navigate('/admin/task-selection');
-      //   } else {
-      //     alert('Admin login failed.');
-      //   }
-      // } catch (error) {
-      //   console.error('Admin login error:', error);
-      //   alert('An error occurred during admin login.');
-      // }
-    } else {
-      // Call regular user login API
-      // try {
-      //   const response = await userLogin(username, password);
-      //   if (response.success) {
-      //     navigate('/teacher/class-selection'); // Or wherever regular users go
-      //   } else {
-      //     alert('Login failed.');
-      //   }
-      // } catch (error) {
-      //   console.error('Login error:', error);
-      //   alert('An error occurred during login.');
-      // }
-    }
-    */
-
-    // Simulate successful login for demonstration
-    if (isAdmin) {
-      console.log('Simulating admin login success. Navigating to admin task selection.');
-      navigate('/admin/tasks');
-    } else {
-      console.log('Simulating user login success. Navigating to teacher class selection.');
-      navigate('/teacher/classes'); // Assuming this is the default for non-admin
+      if (role === 'admin') {
+        navigate('/admin/tasks');
+      } else {
+        navigate('/teacher/classes');
+      }
+    } catch (error) {
+      alert('Login failed: ' + error.detail || error.message);
+      console.error('Login failed:', error);
     }
   };
 
@@ -57,8 +31,8 @@ const Login = () => {
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: '#f0f2f5' }}>
       <div style={{ backgroundColor: '#fff', padding: '40px', borderRadius: '8px', boxShadow: '0 4px 8px rgba(0,0,0,0.1)', width: '400px' }}>
         <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>Login</h2>
-        <input type="email" placeholder="Email" style={{ width: '100%', marginBottom: '10px', padding: '10px', border: '1px solid #ccc', borderRadius: '4px' }} />
-        <input type="password" placeholder="Password" style={{ width: '100%', marginBottom: '20px', padding: '10px', border: '1px solid #ccc', borderRadius: '4px' }} />
+        <input type="text" placeholder="Username" value={username} onChange={(e) => setUsername(e.target.value)} style={{ width: '100%', marginBottom: '10px', padding: '10px', border: '1px solid #ccc', borderRadius: '4px' }} />
+        <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} style={{ width: '100%', marginBottom: '20px', padding: '10px', border: '1px solid #ccc', borderRadius: '4px' }} />
         <div style={{ display: 'flex', alignItems: 'center', marginBottom: '20px' }}>
           <input type="checkbox" id="adminCheck" checked={isAdmin} onChange={() => setIsAdmin(!isAdmin)} style={{ marginRight: '10px' }} />
           <label htmlFor="adminCheck">Admin Mode</label>

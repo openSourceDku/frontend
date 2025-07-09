@@ -1,0 +1,9 @@
+.react-datepicker__day--selected-day-no-todo {
+    background-color: #e0f7fa; /* Light blue */
+    color: #000;
+}
+
+.react-datepicker__day--selected-day-with-todo {
+    background-color: #00bcd4; /* Darker blue */
+    color: #fff;
+}

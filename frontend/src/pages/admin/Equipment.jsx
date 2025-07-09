@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { getFixtures, addFixture, updateFixture, deleteFixture } from '../../api/admin';
 
 const AdminEquipment = () => {
@@ -6,7 +6,7 @@ const AdminEquipment = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [page, setPage] = useState(1);
-    const [size, setSize] = useState(10);
+    const [size] = useState(10);
     const [totalPage, setTotalPage] = useState(1);
     const [showAddModal, setShowAddModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
@@ -15,11 +15,7 @@ const AdminEquipment = () => {
     const [newFixturePrice, setNewFixturePrice] = useState('');
     const [newFixtureCount, setNewFixtureCount] = useState('');
 
-    useEffect(() => {
-        fetchFixtures();
-    }, [page, size]);
-
-    const fetchFixtures = async () => {
+    const fetchFixtures = useCallback(async () => {
         setLoading(true);
         setError(null);
         try {
@@ -32,7 +28,11 @@ const AdminEquipment = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [page, size]);
+
+    useEffect(() => {
+        fetchFixtures();
+    }, [page, size, fetchFixtures]);
 
     const handleAddFixture = async () => {
         try {
@@ -50,8 +50,9 @@ const AdminEquipment = () => {
 
     const handleEditFixture = async () => {
         if (!currentFixture) return;
+        console.log('Updating fixture with ID:', currentFixture.id); // Debugging line
         try {
-            await updateFixture(currentFixture.itemId, newFixtureName, parseInt(newFixturePrice), parseInt(newFixtureCount));
+            await updateFixture(currentFixture.id, newFixtureName, parseInt(newFixturePrice), parseInt(newFixtureCount));
             setShowEditModal(false);
             setNewFixtureName('');
             setNewFixturePrice('');
@@ -59,7 +60,7 @@ const AdminEquipment = () => {
             setCurrentFixture(null);
             fetchFixtures();
         } catch (err) {
-            setError('비품 수정에 실패했습니다.');
+            alert('비품 수정에 실패했습니다.'); // Changed to alert
             console.error('Failed to edit fixture:', err);
         }
     };
@@ -106,13 +107,13 @@ const AdminEquipment = () => {
                     <tbody>
                         {fixtures.map((fixture) => (
                             <tr key={fixture.itemId}>
-                                <td style={{ border: '1px solid #ddd', padding: '8px' }}>{fixture.itemId}</td>
+                                <td style={{ border: '1px solid #ddd', padding: '8px' }}>{fixture.id}</td>
                                 <td style={{ border: '1px solid #ddd', padding: '8px' }}>{fixture.name}</td>
                                 <td style={{ border: '1px solid #ddd', padding: '8px' }}>{fixture.price}</td>
                                 <td style={{ border: '1px solid #ddd', padding: '8px' }}>{fixture.count}</td>
                                 <td style={{ border: '1px solid #ddd', padding: '8px' }}>
                                     <button onClick={() => openEditModal(fixture)} style={{ marginRight: '10px', padding: '5px 10px', backgroundColor: '#008CBA', color: 'white', border: 'none', borderRadius: '3px', cursor: 'pointer' }}>수정</button>
-                                    <button onClick={() => handleDeleteFixture(fixture.itemId)} style={{ padding: '5px 10px', backgroundColor: '#f44336', color: 'white', border: 'none', borderRadius: '3px', cursor: 'pointer' }}>삭제</button>
+                                    <button onClick={() => handleDeleteFixture(fixture.id)} style={{ padding: '5px 10px', backgroundColor: '#f44336', color: 'white', border: 'none', borderRadius: '3px', cursor: 'pointer' }}>삭제</button>
                                 </td>
                             </tr>
                         ))}
@@ -142,18 +143,18 @@ const AdminEquipment = () => {
 
             {/* Add Fixture Modal */}
             {showAddModal && (
-                <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                    <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '8px', width: '300px' }}>
+                <div style={modalOverlayStyle}>
+                    <div style={modalContentStyle}>
                         <h2>비품 등록</h2>
-                        <label>이름:</label>
-                        <input type="text" value={newFixtureName} onChange={(e) => setNewFixtureName(e.target.value)} style={{ width: '100%', padding: '8px', margin: '10px 0' }} />
-                        <label>가격:</label>
-                        <input type="number" value={newFixturePrice} onChange={(e) => setNewFixturePrice(e.target.value)} style={{ width: '100%', padding: '8px', margin: '10px 0' }} />
-                        <label>수량:</label>
-                        <input type="number" value={newFixtureCount} onChange={(e) => setNewFixtureCount(e.target.value)} style={{ width: '100%', padding: '8px', margin: '10px 0' }} />
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '20px' }}>
-                            <button onClick={handleAddFixture} style={{ padding: '8px 15px', backgroundColor: '#4CAF50', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', marginRight: '10px' }}>등록</button>
-                            <button onClick={() => setShowAddModal(false)} style={{ padding: '8px 15px', backgroundColor: '#f44336', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>취소</button>
+                        <label style={labelStyle}>이름:</label>
+                        <input type="text" value={newFixtureName} onChange={(e) => setNewFixtureName(e.target.value)} style={inputStyle} />
+                        <label style={labelStyle}>가격:</label>
+                        <input type="number" value={newFixturePrice} onChange={(e) => setNewFixturePrice(e.target.value)} style={inputStyle} />
+                        <label style={labelStyle}>수량:</label>
+                        <input type="number" value={newFixtureCount} onChange={(e) => setNewFixtureCount(e.target.value)} style={inputStyle} />
+                        <div style={buttonContainerStyle}>
+                            <button onClick={handleAddFixture} style={saveButtonStyle}>등록</button>
+                            <button onClick={() => setShowAddModal(false)} style={cancelButtonStyle}>취소</button>
                         </div>
                     </div>
                 </div>
@@ -161,24 +162,88 @@ const AdminEquipment = () => {
 
             {/* Edit Fixture Modal */}
             {showEditModal && currentFixture && (
-                <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                    <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '8px', width: '300px' }}>
+                <div style={modalOverlayStyle}>
+                    <div style={modalContentStyle}>
                         <h2>비품 수정</h2>
-                        <label>이름:</label>
-                        <input type="text" value={newFixtureName} onChange={(e) => setNewFixtureName(e.target.value)} style={{ width: '100%', padding: '8px', margin: '10px 0' }} />
-                        <label>가격:</label>
-                        <input type="number" value={newFixturePrice} onChange={(e) => setNewFixturePrice(e.target.value)} style={{ width: '100%', padding: '8px', margin: '10px 0' }} />
-                        <label>수량:</label>
-                        <input type="number" value={newFixtureCount} onChange={(e) => setNewFixtureCount(e.target.value)} style={{ width: '100%', padding: '8px', margin: '10px 0' }} />
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '20px' }}>
-                            <button onClick={handleEditFixture} style={{ padding: '8px 15px', backgroundColor: '#008CBA', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', marginRight: '10px' }}>수정</button>
-                            <button onClick={() => setShowEditModal(false)} style={{ padding: '8px 15px', backgroundColor: '#f44336', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>취소</button>
+                        <label style={labelStyle}>이름:</label>
+                        <input type="text" value={newFixtureName} onChange={(e) => setNewFixtureName(e.target.value)} style={inputStyle} />
+                        <label style={labelStyle}>가격:</label>
+                        <input type="number" value={newFixturePrice} onChange={(e) => setNewFixturePrice(e.target.value)} style={inputStyle} />
+                        <label style={labelStyle}>수량:</label>
+                        <input type="number" value={newFixtureCount} onChange={(e) => setNewFixtureCount(e.target.value)} style={inputStyle} />
+                        <div style={buttonContainerStyle}>
+                            <button onClick={handleEditFixture} style={saveButtonStyle}>수정</button>
+                            <button onClick={() => setShowEditModal(false)} style={cancelButtonStyle}>취소</button>
                         </div>
                     </div>
                 </div>
             )}
         </div>
     );
+};
+
+const modalOverlayStyle = {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+};
+
+const modalContentStyle = {
+    backgroundColor: 'white',
+    padding: '30px',
+    borderRadius: '8px',
+    width: '400px', // Increased width
+    boxShadow: '0 4px 8px rgba(0,0,0,0.2)', // Added shadow
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '15px', // Spacing between elements
+};
+
+const inputStyle = {
+    width: '100%',
+    padding: '10px',
+    border: '1px solid #ccc',
+    borderRadius: '4px',
+    boxSizing: 'border-box',
+};
+
+const labelStyle = {
+    marginBottom: '5px',
+    fontWeight: 'bold',
+};
+
+const buttonContainerStyle = {
+    display: 'flex',
+    justifyContent: 'flex-end',
+    marginTop: '20px',
+    gap: '10px',
+};
+
+const saveButtonStyle = {
+    padding: '10px 20px',
+    backgroundColor: '#4CAF50',
+    color: 'white',
+    border: 'none',
+    borderRadius: '5px',
+    cursor: 'pointer',
+    fontSize: '16px',
+};
+
+const cancelButtonStyle = {
+    padding: '10px 20px',
+    backgroundColor: '#f44336',
+    color: 'white',
+    border: 'none',
+    borderRadius: '5px',
+    cursor: 'pointer',
+    fontSize: '16px',
 };
 
 export default AdminEquipment;

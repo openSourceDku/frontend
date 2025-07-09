@@ -1,147 +1,142 @@
 import React, { useState, useEffect } from 'react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-import { getStudents, getTeachers } from '../../api/admin';
+import { getStudents } from '../../api/admin';
 
-const ClassFormModal = ({ show, onClose, onSave, onDelete, classData }) => {
+const ClassFormModal = ({ show, onClose, onSave, onDelete, classData, allTeachers }) => {
     const [className, setClassName] = useState('');
-    const [teacherName, setTeacherName] = useState('');
     const [daysOfWeek, setDaysOfWeek] = useState([]);
     const [allStudents, setAllStudents] = useState([]);
-    const [selectedStudents, setSelectedStudents] = useState([]);
+    const [selectedStudentIds, setSelectedStudentIds] = useState([]); // 학생 ID만 저장
     const [todos, setTodos] = useState([]);
-    const [selectedDate, setSelectedDate] = useState(new Date());
-    const [allTeachers, setAllTeachers] = useState([]);
+    const [currentTodo, setCurrentTodo] = useState(null); // 현재 편집 중인 할 일
+    const [selectedDate, setSelectedDate] = useState(new Date()); // Initialize with current date
     const [selectedTeacherId, setSelectedTeacherId] = useState('');
-    const [currentTodoInput, setCurrentTodoInput] = useState({ alias: '', items: '' });
-    const [currentEditingTodo, setCurrentEditingTodo] = useState(null); // New state to hold the todo being edited
-    const [studentSearchTerm, setStudentSearchTerm] = useState(''); // New state for student search term
-    const [classroom, setClassroom] = useState(''); // New state for classroom
+    const [searchTerm, setSearchTerm] = useState(''); // 검색어 상태 추가
+    const [classroom, setClassroom] = useState(''); // classroom 상태 추가
 
     const todosForSelectedDate = React.useMemo(() => {
         return todos.filter(todo =>
             selectedDate && todo.date === selectedDate.toISOString().split('T')[0]
         );
     }, [todos, selectedDate]);
-
-    const highlightedDates = React.useMemo(() => {
-        return todos.map(todo => new Date(todo.date));
-    }, [todos]);
-
+    // 검색어에 따라 필터링된 학생 목록
     const filteredStudents = React.useMemo(() => {
         return allStudents.filter(student =>
-            student.studentName.toLowerCase().includes(studentSearchTerm.toLowerCase())
+            student.name.toLowerCase().includes(searchTerm.toLowerCase())
         );
-    }, [allStudents, studentSearchTerm]);
+    }, [allStudents, searchTerm]);
 
     useEffect(() => {
-        const fetchAllStudentsAndTeachers = async () => {
+        const fetchAllStudents = async () => {
             try {
-                const [studentsResponse, teachersResponse] = await Promise.all([
-                    getStudents(),
-                    getTeachers()
-                ]);
+                const studentsResponse = await getStudents();
                 setAllStudents(studentsResponse.data.students || []);
-                setAllTeachers(teachersResponse.data.teachers || []);
             } catch (err) {
-                console.error('Failed to fetch students or teachers:', err);
+                console.error('Failed to fetch students:', err);
             }
         };
-        fetchAllStudentsAndTeachers();
+        fetchAllStudents();
     }, []);
 
+    const formatDate = (date) => {
+        if (!date) return '';
+        const d = new Date(date);
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+
     useEffect(() => {
+        console.log("ClassFormModal received classData:", classData);
         if (classData) {
-            setClassName(classData.className);
-            setSelectedTeacherId(classData.teacher.teacherId); // Set selected teacher ID
-            const daysMap = {
-                '월': 'MONDAY', '화': 'TUESDAY', '수': 'WEDNESDAY', '목': 'THURSDAY', '금': 'FRIDAY', '토': 'SATURDAY', '일': 'SUNDAY'
-            };
-            const parsedDays = classData.teacher.classTime ? classData.teacher.classTime.split(' ').map(day => daysMap[day]).filter(Boolean) : [];
-            setDaysOfWeek(parsedDays);
-            setSelectedStudents(classData.students ? classData.students.map(s => s.studentId) : []);
-            setTodos(classData.todos ? classData.todos.map(todo => ({ ...todo, id: todo.id || Date.now() + Math.random(), date: todo.date ? new Date(todo.date) : '' })) : []);
-            setClassroom(classData.teacher.classroom || ''); // Initialize classroom
+            console.log('조회시 전달받는',classData)
+            setClassName(classData.className || ''); // className이 없을 경우 빈 문자열
+            setSelectedTeacherId(classData.teacher ? classData.teacher.teacherId : ''); // teacherId 사용
+            // classData.daysOfWeek가 배열이므로 직접 사용
+            setDaysOfWeek(classData.daysOfWeek || []);
+            setSelectedStudentIds(classData.students ? classData.students.map(s => s.studentId) : []); // studentId 사용
+            setTodos(classData.todos ? classData.todos.map(todo => {
+                const newTodo = {
+                    ...todo,
+                    date: formatDate(todo.date),
+                    title: todo.todoTitle || '',
+                    task: todo.description || '',
+                };
+                if (newTodo.id === undefined) {
+                    delete newTodo.id;
+                }
+                return newTodo;
+            }) : []);
+            setClassroom(classData.classroom || '');
         } else {
             setClassName('');
             setSelectedTeacherId(''); // Reset selected teacher ID
             setDaysOfWeek([]);
-            setSelectedStudents([]);
+            setSelectedStudentIds([]); // studentId로 변경
             setTodos([]);
-            setClassroom(''); // Reset classroom
+            setClassroom(''); // classroom 초기화
         }
         setSelectedDate(new Date()); // Reset selected date when modal opens/closes
     }, [classData]);
 
-    const handleStudentChange = (studentId) => {
-        setSelectedStudents(prev =>
-            prev.includes(studentId)
-                ? prev.filter(id => id !== studentId)
-                : [...prev, studentId]
+    const handleStudentChange = (student_id) => { // student_id로 변경
+        setSelectedStudentIds(prev => // selectedStudentIds로 변경
+            prev.includes(student_id)
+                ? prev.filter(id => id !== student_id)
+                : [...prev, student_id]
         );
     };
 
     const handleAddTodoForSelectedDate = () => {
-        if (!selectedDate) {
+        if (selectedDate) {
+            setTodos(prev => [...prev, { date: selectedDate.toISOString().split('T')[0], title: '', task: '' }]); // title, task 추가
+        } else {
             alert('날짜를 선택해주세요.');
-            return;
         }
-        if (todosForSelectedDate.length > 0 && !currentEditingTodo) {
-            alert('선택된 날짜에는 하나의 할 일만 등록할 수 있습니다.');
-            return;
-        }
-        // This function is now primarily for adding a new todo input form, not directly adding to todos state
-        // The actual adding to todos state happens via handleCompleteTodo
-        setCurrentTodoInput({ alias: '', items: '' });
-        setCurrentEditingTodo(null); // Ensure we are adding a new one
     };
 
-    const handleCompleteTodo = () => {
-        if (!selectedDate) {
-            alert('날짜를 선택해주세요.');
-            return;
-        }
-        if (!currentTodoInput.alias || !currentTodoInput.items) {
-            alert('별칭과 세부 목록을 입력해주세요.');
-            return;
-        }
-
-        const newTodo = {
-            id: currentEditingTodo ? currentEditingTodo.id : Date.now() + Math.random(),
-            alias: currentTodoInput.alias,
-            date: selectedDate.toISOString().split('T')[0],
-            items: currentTodoInput.items.split(',').map(item => item.trim()).filter(item => item !== ''),
-        };
-
+    const handleTodoChange = (todoToUpdate, field, value) => {
         setTodos(prevTodos => {
-            if (currentEditingTodo) {
-                // Update existing todo
-                return prevTodos.map(todo =>
-                    todo.id === currentEditingTodo.id ? newTodo : todo
-                );
-            } else {
-                // Add new todo
-                return [...prevTodos, newTodo];
-            }
+            return prevTodos.map(todo => {
+                if (todo === todoToUpdate) {
+                    return { ...todo, [field]: value }; // items 대신 title, task 처리
+                }
+                return todo;
+            });
         });
-
-        setCurrentTodoInput({ alias: '', items: '' }); // Clear input fields
-        setCurrentEditingTodo(null); // Clear editing state
     };
 
-    const handleEditTodo = (todoToEdit) => {
-        setSelectedDate(new Date(todoToEdit.date)); // Set calendar to todo's date
-        setCurrentTodoInput({ alias: todoToEdit.alias, items: todoToEdit.items.join(', ') });
-        setCurrentEditingTodo(todoToEdit);
-    };
-
-    const handleTodoInputChange = (field, value) => {
-        setCurrentTodoInput(prev => ({ ...prev, [field]: value }));
+    const handleRemoveTodo = (todoToRemove) => {
+        setTodos(prevTodos => prevTodos.filter(todo => todo !== todoToRemove));
     };
 
     const handleSubmit = () => {
-        const studentsToSave = allStudents.filter(student => selectedStudents.includes(student.studentId));
-        onSave({ className, teacherId: selectedTeacherId, daysOfWeek, students: studentsToSave, todos, classroom });
+        const selectedTeacher = allTeachers.find(t => t.teacherId === selectedTeacherId);
+
+        const studentIdsToSave = selectedStudentIds; // 학생 ID 배열 그대로 전달
+
+        // todos는 Class 모델과 직접적인 관계가 없으므로, 여기서는 처리하지 않습니다.
+        // 백엔드에서 별도의 API로 처리하거나, 필요하다면 다른 방식으로 전달해야 합니다.
+
+        const todosToSave = todos.map(todo => ({
+            date: todo.date,
+            title: todo.title,
+            task: todo.task,
+        }));
+
+        onSave({
+            className,
+            teacher: selectedTeacher ? { teacherId: selectedTeacher.teacherId, name: selectedTeacher.name } : null, // 교사 ID와 이름을 객체 형태로 전달
+            daysOfWeek,
+            students: selectedStudentIds.map(id => {
+                const student = allStudents.find(s => s.studentId === id);
+                return student ? { studentId: student.studentId, name: student.name } : null;
+            }).filter(Boolean), // 학생 ID와 이름을 객체 배열 형태로 전달
+            todos: todosToSave,
+            classroom
+        });
     };
 
     if (!show) {
@@ -168,8 +163,8 @@ const ClassFormModal = ({ show, onClose, onSave, onDelete, classData }) => {
                     >
                         <option value="">교사 선택</option>
                         {allTeachers.map(teacher => (
-                            <option key={teacher.teacherId} value={teacher.teacherId}>
-                                {teacher.teacherName}
+                            <option key={teacher.teacherId} value={teacher.teacherId}> {/* teacher.teacherId로 변경 */}
+                                {teacher.name} {/* teacher.name으로 변경 */}
                             </option>
                         ))}
                     </select>
@@ -198,20 +193,13 @@ const ClassFormModal = ({ show, onClose, onSave, onDelete, classData }) => {
                             </label>
                         ))}
                     </div>
-                    <label>강의실:</label>
-                    <input
-                        type="text"
-                        value={classroom}
-                        onChange={(e) => setClassroom(e.target.value)}
-                        style={inputStyle}
-                    />
                     <label>학생 등록:</label>
                     <input
                         type="text"
-                        placeholder="학생 이름 검색..."
-                        value={studentSearchTerm}
-                        onChange={(e) => setStudentSearchTerm(e.target.value)}
-                        style={{ ...inputStyle, marginBottom: '10px' }}
+                        placeholder="학생 이름으로 검색"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        style={inputStyle}
                     />
                     <div style={{ border: '1px solid #ddd', padding: '10px', maxHeight: '150px', overflowY: 'auto' }}>
                         {filteredStudents.map(student => (
@@ -219,14 +207,21 @@ const ClassFormModal = ({ show, onClose, onSave, onDelete, classData }) => {
                                 <label>
                                     <input
                                         type="checkbox"
-                                        checked={selectedStudents.includes(student.studentId)}
+                                        checked={selectedStudentIds.includes(student.studentId)}
                                         onChange={() => handleStudentChange(student.studentId)}
                                     />
-                                    {student.studentName} ({student.studentId})
+                                    {student.name} ({student.birth_date})
                                 </label>
                             </div>
                         ))}
                     </div>
+                    <label>강의실:</label>
+                    <input
+                        type="text"
+                        value={classroom}
+                        onChange={(e) => setClassroom(e.target.value)}
+                        style={inputStyle}
+                    />
                 </div>
 
                 <div style={{ flex: 1, paddingLeft: '20px' }}>
@@ -236,38 +231,55 @@ const ClassFormModal = ({ show, onClose, onSave, onDelete, classData }) => {
                         onChange={(date) => setSelectedDate(date)}
                         dateFormat="yyyy-MM-dd"
                         inline
-                        highlightDates={highlightedDates}
+                        dayClassName={(date) => {
+                            const dayOfWeek = date.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+                            const dayMap = {
+                                0: 'SUNDAY',
+                                1: 'MONDAY',
+                                2: 'TUESDAY',
+                                3: 'WEDNESDAY',
+                                4: 'THURSDAY',
+                                5: 'FRIDAY',
+                                6: 'SATURDAY',
+                            };
+                            const englishDay = dayMap[dayOfWeek];
+                            const formattedDate = date.toISOString().split('T')[0];
+                            const hasTodo = todos.some(todo => todo.date === formattedDate);
+
+                            if (hasTodo) {
+                                return 'selected-day-with-todo';
+                            } else if (daysOfWeek.includes(englishDay)) {
+                                return 'selected-day-no-todo';
+                            }
+                            return undefined;
+                        }}
                     />
                     {selectedDate && (
                         <div style={{ marginTop: '20px' }}>
                             <h3>{selectedDate.toLocaleDateString()} 할 일</h3>
+                            <button onClick={handleAddTodoForSelectedDate} style={{ padding: '5px 10px', backgroundColor: '#008CBA', color: 'white', border: 'none', borderRadius: '3px', cursor: 'pointer', marginBottom: '10px' }}>할 일 추가</button>
                             {todosForSelectedDate.length > 0 ? (
-                                todosForSelectedDate.map((todo) => (
-                                    <div key={todo.id} style={{ marginBottom: '15px', padding: '10px', border: '1px solid #eee', borderRadius: '5px' }}>
-                                        <p><strong>별칭:</strong> {todo.alias}</p>
-                                        <p><strong>세부 목록:</strong> {todo.items.join(', ')}</p>
-                                        <button onClick={() => handleEditTodo(todo)} style={{ marginRight: '10px', padding: '5px 10px', backgroundColor: '#008CBA', color: 'white', border: 'none', borderRadius: '3px', cursor: 'pointer' }}>수정</button>
-                                        <button onClick={() => handleRemoveTodo(todo)} style={{ padding: '5px 10px', backgroundColor: '#f44336', color: 'white', border: 'none', borderRadius: '3px', cursor: 'pointer' }}>삭제</button>
+                                todosForSelectedDate.map((todo, index) => (
+                                    <div key={todo.date + index} style={{ marginBottom: '15px', padding: '10px', border: '1px solid #eee', borderRadius: '5px' }}> {/* key 변경 */}
+                                        <label>제목:</label> {/* 별칭 -> 제목 */}
+                                        <input
+                                            type="text"
+                                            value={todo.title} // alias -> title
+                                            onChange={(e) => handleTodoChange(todo, 'title', e.target.value)} // alias -> title
+                                            style={inputStyle}
+                                        />
+                                        <label>내용:</label> {/* 세부 목록 -> 내용 */}
+                                        <input
+                                            type="text"
+                                            value={todo.task} // items -> task
+                                            onChange={(e) => handleTodoChange(todo, 'task', e.target.value)} // items -> task
+                                            style={inputStyle}
+                                        />
+                                        <button onClick={() => handleRemoveTodo(todo)} style={{ padding: '5px 10px', backgroundColor: '#f44336', color: 'white', border: 'none', borderRadius: '3px', cursor: 'pointer', marginTop: '5px' }}>삭제</button>
                                     </div>
                                 ))
                             ) : (
-                                <div style={{ marginBottom: '15px', padding: '10px', border: '1px solid #eee', borderRadius: '5px' }}>
-                                    <label>별칭:</label>
-                                    <input
-                                        type="text"
-                                        value={currentTodoInput.alias}
-                                        onChange={(e) => handleTodoInputChange('alias', e.target.value)}
-                                        style={inputStyle}
-                                    />
-                                    <label>세부 목록 (쉼표로 구분):</label>
-                                    <input
-                                        type="text"
-                                        value={currentTodoInput.items}
-                                        onChange={(e) => handleTodoInputChange('items', e.target.value)}
-                                        style={inputStyle}
-                                    />
-                                    <button onClick={handleCompleteTodo} style={{ padding: '5px 10px', backgroundColor: '#4CAF50', color: 'white', border: 'none', borderRadius: '3px', cursor: 'pointer', marginTop: '5px' }}>완료</button>
-                                </div>
+                                <p>선택된 날짜에 할 일이 없습니다.</p>
                             )}
                         </div>
                     )}

@@ -1,0 +1,52 @@
+## 반 등록 및 수정 기능 관련 맥락
+
+### 1. 프론트엔드 (frontend/frontend) 변경 사항
+
+*   **`frontend/frontend/src/components/admin/StudentFormModal.jsx`**:
+    *   학생 데이터 제출 시 `console.log` 추가.
+*   **`frontend/frontend/src/pages/admin/Students.jsx`**:
+    *   학생 ID 표시 및 처리 로직에서 `student.student_id`를 `student.id`로 변경.
+*   **`frontend/frontend/src/api/admin.js`**:
+    *   `updateStudent` 함수에서 `studentData.student_id` 대신 `studentData.id` 사용.
+    *   `addClass` 및 `updateClass` 함수에서 백엔드 API 명세서에 맞춰 `teacher` (객체), `students` (객체 배열), `todos` (객체 배열) 형식으로 데이터 전송하도록 수정.
+*   **`frontend/frontend/src/components/admin/ClassFormModal.jsx`**:
+    *   학생 체크박스 처리 로직에서 `student.student_id` 대신 `student.id` 사용.
+    *   `handleSubmit` 함수에서 `teacher`, `students`, `todos` 데이터를 API 명세서 형식에 맞춰 변환하여 `onSave`로 전달.
+
+### 2. 백엔드 (frontend/backend) 변경 사항
+
+*   **`backend/management/models.py`**:
+    *   `Student` 모델의 `birth_date` 필드 타입을 `models.IntegerField()`에서 `models.DateField()`로 변경. (마이그레이션 필요)
+*   **`backend/management/views.py`**:
+    *   `StudentViewSet`의 `create` 메서드에 상세 로깅 및 예외 처리(`try-except`) 추가.
+    *   `StudentViewSet`의 `create` 메서드 성공 시 `{"message": "Student added successfully"}` 대신 `serializer.data` (ID 포함) 반환하도록 변경.
+*   **`backend/management/serializers.py`**:
+    *   **`StudentSerializer`**:
+        *   `class_obj` 필드를 `serializers.SerializerMethodField()`에서 `serializers.PrimaryKeyRelatedField()`로 변경하여 순환 참조 문제 해결.
+        *   `get_class_obj` 메서드 제거.
+        *   `Meta.fields`에 `id`와 `class_obj`가 올바르게 포함되도록 수정.
+    *   **`ClassSerializer`**:
+        *   API 명세서에 맞춰 필드 정의 변경:
+            *   `teacher`: 쓰기 전용 `DictField`로 변경.
+            *   `teacher_display`: 읽기 전용 `TeacherSerializer`로 `teacher` 필드 표시.
+            *   `students`: 쓰기 전용 `ListField(child=serializers.DictField())`로 변경.
+            *   `students_display`: 읽기 전용 `StudentSerializer(many=True)`로 `students` 필드 표시.
+            *   `todos`: `read_only=True` 제거하여 쓰기 가능하도록 변경.
+        *   `teacher_id`, `student_ids`, `todos_data` 필드 제거.
+        *   `Meta.fields`를 명시적으로 지정.
+        *   `create` 및 `update` 메서드 로직 수정:
+            *   `teacher` 객체, `students` 배열, `todos` 배열을 처리하도록 변경.
+            *   `daysOfWeek`를 `initial_data`에서 가져와 `classTime`으로 매핑하도록 수정.
+            *   `todos` 저장 로직에서 `TodoSerializer.save(class_obj=class_instance)`를 통해 `class_obj`를 올바르게 전달하도록 수정.
+*   **`backend/teacher/models.py`**:
+    *   `Todo` 모델의 `todoTitle` 및 `description` 필드에 `blank=True` 추가하여 선택 사항으로 만듦. (마이그레이션 필요)
+*   **`backend/teacher/serializers.py`**:
+    *   **`TodoSerializer`**:
+        *   `title` 필드를 `todoTitle`에, `task` 필드를 `description`에 매핑 (`source` 사용).
+        *   `title` 및 `task` 필드에 `required=False` 및 `allow_blank=True` 옵션 추가.
+        *   `Meta.fields`를 명시적으로 지정하여 `id`, `class_obj`, `title`, `task`, `date` 포함.
+
+### 3. 마이그레이션 및 서버 재시작
+
+*   `models.py` 변경 후에는 반드시 `python manage.py makemigrations <app_name>` 및 `python manage.py migrate` 명령어를 실행하여 데이터베이스 스키마를 업데이트해야 함.
+*   백엔드 코드 변경 후에는 개발 서버를 재시작해야 변경 사항이 적용됨.
