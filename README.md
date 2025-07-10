@@ -18,5 +18,5 @@ frontend/vite.config.js 의 proxy 설정을 확인하세요.
 
 ## ⚙️ 주요 기술 스택
 Layer	Tech
-Backend	Django 4 · DRF 3 · JWT(SimpleJWT)
-Frontend	React 18 (Vite) · Axios · React-Router
+- Backend	Django 4 · DRF 3 · JWT(SimpleJWT)
+- Frontend	React 18 (Vite) · Axios · React-Router
