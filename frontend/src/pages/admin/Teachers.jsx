@@ -56,8 +56,8 @@ export default function AdminTeachers() {
         <tbody>
           {teachers.map(t=>(
             <tr key={t.id}>
-              <td style={td}>{t.id}</td>               {/* 서버 PK */}
-              <td style={td}>{t.teacherId}</td>        {/* 로그인용 ID */}
+              <td style={td}>{t.id}</td>
+              <td style={td}>{t.teacherId}</td>
               <td style={td}>{t.name}</td>
               <td style={td}>{t.age}</td>
               <td style={td}>{t.position}</td>

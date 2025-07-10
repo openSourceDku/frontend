@@ -83,29 +83,34 @@ class SendReportView(APIView):
             'sentIndividual': sent_individual
         }, status=status.HTTP_200_OK)
 
+# teacher/views.py  (또는 TodoByClassIdAndMonthViewSet 정의 파일)
+
 class TodoByClassIdAndMonthViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Todo.objects.all()
     serializer_class = TodoSerializer
 
     def list(self, request, class_id=None, *args, **kwargs):
-        print(f"--- TodoByClassIdAndMonthViewSet.list --- Received class_id: {class_id}")
-        year = request.query_params.get('year')
+        """
+        year, month 쿼리 파라미터가 없으면
+        → 해당 반(class_id)의 모든 Todo 반환
+        선택적으로 year·month가 들어오면 필터링
+        """
+        year  = request.query_params.get('year')
         month = request.query_params.get('month')
-        print(f"Received query params - year: {year}, month: {month}")
 
-        if class_id and year and month:
-            # Filter todos by class and date range
-            # Note: This assumes `date` field in Todo model is a DateField
-            # and you want todos for the entire month.
-            queryset = self.queryset.filter(
-                class_obj__id=class_id,
-                date__year=year,
-                date__month=month
-            )
+        if class_id:
+            qs = self.queryset.filter(class_obj__id=class_id)
+
+            if year:
+                qs = qs.filter(date__year=year)
+            if month:
+                qs = qs.filter(date__month=month)
         else:
-            queryset = self.queryset.none()
-        serializer = self.get_serializer(queryset, many=True)
+            qs = self.queryset.none()
+
+        serializer = self.get_serializer(qs, many=True)
         return Response({'todos': serializer.data})
+
 
 class TeacherFixtureViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Fixture.objects.all()

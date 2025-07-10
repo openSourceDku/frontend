@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { getTodosByClassIdAndMonth } from '../../api/teacher';
+import { getTodosByClassId } from '../../api/teacher';
 
 function CheckTodo() {
   const { classId } = useParams();
@@ -13,7 +13,8 @@ function CheckTodo() {
       try {
         const year = currentDate.getFullYear();
         const month = currentDate.getMonth() + 1; // Month is 0-indexed
-        const response = await getTodosByClassIdAndMonth(classId, year, month);
+        const response = await getTodosByClassId(classId);
+        console.log(response)
         setTodos(response.todos);
         console.log('Fetched todos:', response.todos);
       } catch (error) {

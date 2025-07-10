@@ -114,7 +114,11 @@ export default function ClassFormModal({
         const s = allStudents.find(u=>u.id===id);
         return s ? { id:id, name:s.name } : null;
       }).filter(Boolean),
-      todos,
+      todos: todos.map(t => ({
+      date: t.date,
+      todoTitle: t.title,
+      description: t.task,
+    })),
       classroom
     };
     console.log('ClassFormModal: Payload being sent:', payload);
@@ -214,6 +218,9 @@ export default function ClassFormModal({
             />
 
             <h3>{selectedDate.toLocaleDateString()} 할 일</h3>
+            {console.log('ClassFormModal: selectedDate:', selectedDate, 'toKey(selectedDate):', toKey(selectedDate))}
+            {console.log('ClassFormModal: todos state:', todos)}
+            {console.log('ClassFormModal: todayTodos:', todayTodos)}
             {todayTodos.length === 0 && <button className="btn add" onClick={addTodo}>할 일 추가</button>}
 
             {todayTodos.length ? todayTodos.map((t,i)=>(

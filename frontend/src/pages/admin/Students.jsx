@@ -16,11 +16,12 @@ export default function AdminStudents() {
     getStudents().then(r => setStudents(r.data.students));
   }
 
-  /* ─── 저장(등록/수정) ─── */
-  function onSave(data) {
-    // studentId 가 있으면 수정, 없으면 신규
-    (data.studentId ? updateStudent(data) : addStudent(data)).then(load);
-  }
+/* ─── 저장(등록/수정) ─── */
+function onSave(data) {
+  // ✅ id 가 있으면 수정(PATCH), 없으면 신규(POST)
+  (data.id ? updateStudent(data) : addStudent(data)).then(load);
+}
+
 
   /* ─── 삭제 ─── */
   function onDel(id) {
@@ -61,7 +62,7 @@ export default function AdminStudents() {
               <td style={td}>{s.id}</td>
               <td style={td}>{s.class_id ?? 'N/A'}</td>
               <td style={td}>{s.name}</td>
-              <td style={td}>{s.birth_date}</td>
+              <td style={td}>{s.birthDate}</td>
               <td style={td}>{s.email}</td>
               <td style={td}>{s.gender}</td>
               <td style={td}>
